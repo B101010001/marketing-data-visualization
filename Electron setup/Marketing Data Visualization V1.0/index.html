@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARKETING DATA VISUALIZATION V1.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-transform: uppercase;
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        #container {
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        input, select, button {
+            margin: 5px 0;
+            padding: 8px;
+            box-sizing: border-box;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        button {
+            background-color: #00bcd4;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #008ba3;
+        }
+        canvas {
+            margin-top: 20px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+        }
+        #exportToExcelButton {
+            margin-top: 10px;
+            background-color: #00bcd4;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #exportToExcelButton:hover {
+            background-color: #008ba3;
+        }
+        #signature {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <h1>MARKETING DATA VISUALIZATION V1.0</h1>
+    <!-- Selectable campaigns dropdown -->
+    <label for="campaignSelect">Select Campaign:</label>
+    <select id="campaignSelect" onchange="selectCampaign()">
+        <option value="" disabled selected>Select Campaign</option>
+    </select>
+    <!-- Manual data input fields -->
+    <label for="clicksInput">Clicks:</label>
+    <input type="number" id="clicksInput" placeholder="0" value="0" oninput="updateChart()">
+    <label for="conversionsInput">Conversions:</label>
+    <input type="number" id="conversionsInput" placeholder="0" value="0" oninput="updateChart()">
+    <!-- Add and Remove data buttons -->
+    <button onclick="addData()">Add Data</button>
+    <button onclick="removeData()">Remove Data</button>
+    <!-- Add and Remove campaigns buttons -->
+    <label for="newCampaignInput">New Campaign:</label>
+    <input type="text" id="newCampaignInput" placeholder="New Campaign Name">
+    <button onclick="addNewCampaign()">Add Campaign</button>
+    <button onclick="removeSelectedCampaign()">Remove Campaign</button>
+    <button onclick="removeAllCampaigns()">Remove All Campaigns</button>
+    <!-- Display mode selection -->
+    <label for="displayModeSelect">Display Mode:</label>
+    <select id="displayModeSelect" onchange="updateChart()">
+        <option value="values" selected>Values</option>
+        <option value="percentage">Percentage</option>
+    </select>
+    <!-- Export to Excel button -->
+    <button id="exportToExcelButton" onclick="exportToExcel()">Export to Excel</button>
+    <!-- Chart canvas -->
+    <canvas id="marketingChart" width="400" height="200"></canvas>
+</div>
+<!-- Signature -->
+<div id="signature">
+    <p>Author: B. P.</p>
+</div>
+<script>
+    let marketingData = [];
+    let ctx = document.getElementById('marketingChart').getContext('2d');
+    let marketingChart;
+
+    function renderBarChart(data) {
+        if (marketingChart) {
+            marketingChart.destroy();
+        }
+        marketingChart = new Chart(ctx, {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return document.getElementById('displayModeSelect').value === 'percentage' ? value + '%' : value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function analyzeMarketingData(data) {
+        let labels = [];
+        let clicksData = [];
+        let conversionsData = [];
+        for (let item of data) {
+            labels.push(item.campaign);
+            clicksData.push(item.clicks);
+            conversionsData.push(item.conversions);
+        }
+        let displayMode = document.getElementById('displayModeSelect').value;
+        return {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Clicks',
+                    data: clicksData,
+                    backgroundColor: 'rgba(70, 192, 192, 0.6)',
+                },
+                {
+                    label: 'Conversions',
+                    data: conversionsData,
+                    backgroundColor: 'rgba(150, 100, 255, 1)',
+                }
+            ]
+        };
+    }
+
+    function updateChart() {
+        renderBarChart(analyzeMarketingData(marketingData));
+    }
+
+    function populateCampaignsDropdown() {
+        let dropdown = document.getElementById('campaignSelect');
+        dropdown.innerHTML = '<option value="" disabled selected>Select Campaign</option>';
+        for (let item of marketingData) {
+            let option = document.createElement('option');
+            option.value = item.campaign;
+            option.text = item.campaign;
+            dropdown.add(option);
+        }
+    }
+
+    function addData() {
+        let campaign = document.getElementById('campaignSelect').value;
+        let clicks = document.getElementById('clicksInput').value;
+        let conversions = document.getElementById('conversionsInput').value;
+        let item = marketingData.find(item => item.campaign === campaign);
+        if (item) {
+            item.clicks = Number(clicks);
+            item.conversions = Number(conversions);
+        } else {
+            marketingData.push({
+                campaign: campaign,
+                clicks: Number(clicks),
+                conversions: Number(conversions)
+            });
+        }
+        updateChart();
+    }
+
+    function removeData() {
+        let campaign = document.getElementById('campaignSelect').value;
+        let item = marketingData.find(item => item.campaign === campaign);
+        if (item) {
+            item.clicks = 0;
+            item.conversions = 0;
+        }
+        updateChart();
+    }
+
+    function addNewCampaign() {
+        let newCampaignName = document.getElementById('newCampaignInput').value;
+        if (newCampaignName && !marketingData.some(item => item.campaign === newCampaignName)) {
+            marketingData.push({
+                campaign: newCampaignName,
+                clicks: 0,
+                conversions: 0
+            });
+            populateCampaignsDropdown();
+            updateChart();
+        }
+    }
+
+    function removeSelectedCampaign() {
+        let selectedCampaign = document.getElementById('campaignSelect').value;
+        marketingData = marketingData.filter(item => item.campaign !== selectedCampaign);
+        populateCampaignsDropdown();
+        updateChart();
+    }
+
+    function removeAllCampaigns() {
+        marketingData = [];
+        populateCampaignsDropdown();
+        updateChart();
+    }
+
+    function exportToExcel() {
+        let wb = XLSX.utils.book_new();
+        let ws = XLSX.utils.json_to_sheet(marketingData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Marketing Data');
+        XLSX.writeFile(wb, 'marketing_data.xlsx');
+    }
+
+    // Initial chart rendering
+    renderBarChart(analyzeMarketingData(marketingData));
+    populateCampaignsDropdown();
+</script>
+</body>
+</html>

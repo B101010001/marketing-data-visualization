@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARKETING DATA VISUALIZATION</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div id="container">
+    <h1>MARKETING DATA VISUALIZATION</h1>
+    <label for="campaignSelect">Select Campaign:</label>
+    <select id="campaignSelect" onchange="selectCampaign()"></select>
+    <label for="clicksInput">Clicks:</label>
+    <input type="number" id="clicksInput" placeholder="0" value="0" oninput="updateChart()">
+    <label for="conversionsInput">Conversions:</label>
+    <input type="number" id="conversionsInput" placeholder="0" value="0" oninput="updateChart()">
+    <button onclick="addData()">Add Data</button>
+    <button onclick="removeData()">Remove Data</button>
+    <label for="newCampaignInput">New Campaign:</label>
+    <input type="text" id="newCampaignInput" placeholder="New Campaign Name">
+    <button onclick="addNewCampaign()">Add Campaign</button>
+    <button onclick="removeSelectedCampaign()">Remove Campaign</button>
+    <button onclick="removeAllCampaigns()">Remove All Campaigns</button>
+    <label for="displayModeSelect">Display Mode:</label>
+    <select id="displayModeSelect" onchange="updateChart()">
+        <option value="values" selected>Values</option>
+        <option value="percentage">Percentage</option>
+    </select>
+    <button id="exportToExcelButton" onclick="exportToExcel()">Export to Excel</button>
+    <canvas id="marketingChart" width="400" height="200"></canvas>
+</div>
+<div id="signature">
+    <p>Author: B. P.</p>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
